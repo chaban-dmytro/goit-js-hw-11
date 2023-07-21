@@ -1,11 +1,14 @@
 import axios from "axios";
 import Notiflix from 'notiflix';
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 
 const galleryItem = document.querySelector( '.gallery' );
 const formEl = document.querySelector( '.search-form' );
 const inputEl = document.querySelector( '.search-form input' );
 const buttonEl = document.querySelector( '.search-form button' );
 const loaderEl = document.querySelector( '.loader' );
+const lightbox = new SimpleLightbox('.gallery a', { /* options */ });
 
 const BASE_URL = 'https://pixabay.com/api';
 let userInfo;
@@ -19,10 +22,16 @@ formEl.addEventListener( 'submit', formSubmit );
 buttonEl.disabled = true;
 loaderEl.hidden = true;
 
+
+
+
+
+
+
 const target = document.querySelector( '.js-guard' );
 let options = {
   root: null,
-  rootMargin: '300px',
+  rootMargin: '400px',
   threshold: 1.0,
 };
 let observer = new IntersectionObserver( onLoad, options );
@@ -34,7 +43,8 @@ function onLoad( entries, observer ) {
       getImages( currentPage )
       .then( resp => {
       const array = resp.data.hits;
-      galleryItem.insertAdjacentHTML( 'beforeend', createMarkup( array ) );
+        galleryItem.insertAdjacentHTML( 'beforeend', createMarkup( array ) );
+        lightbox.refresh();
         if ( currentPage === totalPages ) {
           observer.unobserve( target );
         }
@@ -49,9 +59,11 @@ function onLoad( entries, observer ) {
 }
 
 function checkInput( event ) {
-  if ( (event.target.value.trim().length) === 0 ) {
+  if ( ( event.target.value.trim().length ) === 0 ) {
+    console.log(event.target.value.trim().length);
     Notiflix.Notify.warning('Your query must start with a LETTER or NUMBER and must not be EMPTY!');
     event.target.value = '';
+    buttonEl.disabled = true;
     return;
   }
   buttonEl.disabled = false;
@@ -74,7 +86,9 @@ function formSubmit( event ) {
       Notiflix.Notify.info('Sorry, there are no images matching your search query. Please try again.');
     } else {
       galleryItem.insertAdjacentHTML( 'beforeend', createMarkup( array ) );
+      lightbox.refresh();
       observer.observe( target );
+      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
     }
   } )
   .catch( err => {
@@ -99,51 +113,24 @@ async function getImages( page = 1 ) {
 function createMarkup( array ) {
   console.log( array );
   return array.map( ( { largeImageURL, webformatURL, tags, likes, views, comments, downloads, } ) => `<div class="photo-card">
-  <img src="${webformatURL}" alt="${tags}" loading="lazy"/>
+  <a href="${largeImageURL}"><img src="${webformatURL}" alt="${tags}" loading="lazy"/></a>
   <div class="info">
     <p class="info-item">
+      Likes
       <b>${likes}</b>
     </p>
     <p class="info-item">
+      Views
       <b>${views}</b>
     </p>
     <p class="info-item">
+      Comments
       <b>${comments}</b>
     </p>
     <p class="info-item">
+      Downloads
       <b>${downloads}</b>
     </p>
     </div>
   </div>`).join( '' )
 }
-
-
-
-
-
-
-
-
-
-
-// function takeImages() {
-//   return fetch(
-//     `${BASE_URL}/?q=${userInfo}&image_type=photo&orientation=horizontal&safesearch=true&per_page=${PAGES_ON_PAGE}&page=${currentPage}&key=${API_KEY}`
-//   ).then( resp => {
-//     if ( !resp.ok ) {
-//       throw new Error(resp.statusText)
-//     }  
-//     return resp.json()
-//   } )
-// }
-
-// takeImages().then( data => {
-//   console.log( data );
-  
-// } ).catch( err => {
-//   // Notiflix.Notify.failure( 'Oops! Something went wrong! Try reloading the page!' );
-//   // selectInputEl.innerHTML = `<option value='noInfo'>No info from server</option>`
-//   // loaderEl.classList.add( 'hidden' );
-//   console.log("ERROR");
-// }
-// );
