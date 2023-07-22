@@ -8,7 +8,7 @@ const formEl = document.querySelector( '.search-form' );
 const inputEl = document.querySelector( '.search-form input' );
 const buttonEl = document.querySelector( '.search-form button' );
 const loaderEl = document.querySelector( '.loader' );
-const lightbox = new SimpleLightbox('.gallery a', { /* options */ });
+const lightbox = new SimpleLightbox('.gallery a');
 
 const BASE_URL = 'https://pixabay.com/api';
 let userInfo;
@@ -22,12 +22,7 @@ formEl.addEventListener( 'submit', formSubmit );
 buttonEl.disabled = true;
 loaderEl.hidden = true;
 
-
-
-
-
-
-
+// more pages loader
 const target = document.querySelector( '.js-guard' );
 let options = {
   root: null,
@@ -60,7 +55,6 @@ function onLoad( entries, observer ) {
 
 function checkInput( event ) {
   if ( ( event.target.value.trim().length ) === 0 ) {
-    console.log(event.target.value.trim().length);
     Notiflix.Notify.warning('Your query must start with a LETTER or NUMBER and must not be EMPTY!');
     event.target.value = '';
     buttonEl.disabled = true;
@@ -111,7 +105,6 @@ async function getImages( page = 1 ) {
 }
 
 function createMarkup( array ) {
-  console.log( array );
   return array.map( ( { largeImageURL, webformatURL, tags, likes, views, comments, downloads, } ) => `<div class="photo-card">
   <a href="${largeImageURL}"><img src="${webformatURL}" alt="${tags}" loading="lazy"/></a>
   <div class="info">
