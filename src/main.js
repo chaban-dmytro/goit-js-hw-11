@@ -1,4 +1,4 @@
-import axios from "axios";
+import { getImages, imagesOnPage } from './fetch';
 import Notiflix from 'notiflix';
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
@@ -10,11 +10,9 @@ const buttonEl = document.querySelector( '.search-form button' );
 const loaderEl = document.querySelector( '.loader' );
 const lightbox = new SimpleLightbox('.gallery a');
 
-const BASE_URL = 'https://pixabay.com/api';
 let userInfo;
 let totalHits;
 let totalPages;
-const imagesOnPage = 40;
 let currentPage = 1;
 
 inputEl.addEventListener( 'input', checkInput );
@@ -22,7 +20,6 @@ formEl.addEventListener( 'submit', formSubmit );
 buttonEl.disabled = true;
 loaderEl.hidden = true;
 
-// more pages loader
 const target = document.querySelector( '.js-guard' );
 let options = {
   root: null,
@@ -35,7 +32,7 @@ function onLoad( entries, observer ) {
   entries.forEach( entry => {
     if ( entry.isIntersecting ) {
       currentPage += 1;
-      getImages( currentPage )
+      getImages( currentPage, userInfo )
       .then( resp => {
       const array = resp.data.hits;
         galleryItem.insertAdjacentHTML( 'beforeend', createMarkup( array ) );
@@ -70,7 +67,7 @@ function formSubmit( event ) {
   inputEl.value = '';
   galleryItem.innerHTML = '';
   buttonEl.disabled = true;
-  getImages()
+  getImages( currentPage, userInfo )
     .then( resp => {
       totalHits = resp.data.totalHits;
       totalPages = Math.ceil( totalHits / imagesOnPage );
@@ -81,27 +78,18 @@ function formSubmit( event ) {
     } else {
       galleryItem.insertAdjacentHTML( 'beforeend', createMarkup( array ) );
       lightbox.refresh();
-      observer.observe( target );
-      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
+      Notiflix.Notify.success( `Hooray! We found ${totalHits} images.` );
+      if ( totalHits > imagesOnPage ) {
+        observer.observe( target );
+      }
     }
   } )
   .catch( err => {
     Notiflix.Notify.failure( 'Oops! Something went wrong! Try reloading the page!' );
     loaderEl.hidden = true;
+    console.log(err);
     }
   );
-}
-
-async function getImages( page = 1 ) {
-  return await axios.get( `${BASE_URL}/?&page=${page}&q=${userInfo}`, {
-    params: {
-      key: '38307490-77491a55abe31d7c70378f259',
-      image_type: 'photo',
-      orientation: 'horizontal',
-      safesearch: true,
-      per_page: imagesOnPage,
-    }
-  })
 }
 
 function createMarkup( array ) {
